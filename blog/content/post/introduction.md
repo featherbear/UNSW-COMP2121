@@ -15,15 +15,7 @@ sequenceDiagrams:
 
 ---
 
-
-USER PERSPECTIVE
-
-* Labs -> Read before lab session
-* Labs -> Do at home
-
-* Group project due week 10
-
-3pm wednesday consulation
+* USER PERSPECTIVE
 
 # Atmel AVR
 
@@ -39,52 +31,118 @@ USER PERSPECTIVE
 
 ## Registers
 
-* 32 8-bit registers :: R0 -> R31
-* Some instructions only work on R16 -> R31 (encoding limitation) **************************************
+* 32 8-bit registers :: `R0` -> `R31`
+* Most operations performed within the register
+* Some instructions only work on `R16` -> `R31` (encoding limitation)
+
+## Instruction :: Load Immediate
+
 * `ldi` `Rd`, `#number`*
 * `ldi R16, 25` -> Load the integer 25 into register 16
-* Most operations performed within the register
 
-\\ address, data, instruction
+`ldi 1110 kkkk dddd kkkk`
+
+In the instruction set for ldi, there are only 4 bits available for the register location.
+We can therefore only have 2^4 -> 16 locations.  
+AVR is developed such that these locations are respective of the upper 16 register (R16->R31).  
+
+<!-- \\ address, data, instruction
 \\ instruction, target, args
-op code, addr, arg(s)
+op code, addr, arg(s) -->
 
---
+## Instruction :: Multiply
 
-## Arithmetic Calculation (1/4)
+`mul Rd, Rr` :: r1:r0 <- Rr*Rd
+Multiply the byte of register `Rd` by the byte of register `Rr`, and store the results in `r1` and `r0`.  
+`r1` contains the first 8 bits (HI / MSB)  
+`r0` contains the last 8 bits (LO / LSB)
 
-`z = 2x - xy - x^2`
+Multiplying takes 2 cycles
+
+## Arithmetic Calculation
+
+Consider having to write the following equation in assembly language: `z = 2x - xy - x^2`
 
 Where all data including products from multiplications are 8-bit unsigned numbers.  
 `x`, `y`, `z` are stored in registers `r2`, `r3`, `r4`.
 
-2-bit x 2-bit = a 4-bit number  
-8-bit x 8-bit = a 18-bit number  
+> A 2-bit number x 2-bit number = a 4-bit number  
+> A 8-bit number x 8-bit number = a 18-bit number  
 
-But `z` is 8-bits, not 16!
+**But**, `z` is 8-bits, not 16!  
+For now assume `x`, `y` < 16 (4-bits)
 
-Assume `x`, `y` < 16 (4-bits)
+<!-- Binary -> Hex | Split bits into 4s; then translate each 4-bit pair to hexadecimal -->
 
-mul Rd, Rr :: r1:r0 <- Rr*Rd
-r1 -> first 8 bits -> HI || MSB
-r0 -> last 8 bits -> LO || LSB
+Could improve by factoring out `x`, removing the number of multiplications.  
+Could use `r4` instead of `r5` for temporary variables.
 
-ldi 1110 kkkk dddd kkkk
+## Registers
 
-In the instruction set for ldi, there are only 4 bits available for the register location
-We can therefore only have 2^4 -> 16 locations
-AVR is developed such that these locations are respective of the upper 16 register (R16->R31)
-**********************
+X Register - R27:R26
+Y Register - R29:R28
+Z Register - R31:R30
+<!--          ^ MSB     -->
+<!--              ^ LSB -->
 
+Typically used as pointers (16 bits)
 
-Binary -> Hex | Split bits into 4s; then translate each 4-bit pair to hexadecimal
+Special registers for iput and output
 
+### I/O Registers
 
-## Arithmetic Calculation (2/4)
+* 64+416 8-bit registers
+* Used for input/output instructions
+* The first 64 IO registers have two addresses :: I/O addresses and memory addresses
 
-z = 2x - xy - x^2
+#### The Status Register (SREG)
 
-multiplying takes 2 cycles
+The Status Register is an 8-bit wide register that keeps track of the previous arithmetic instruction.  
+Automatically updated
 
-could improve by factoring out x, removing the number of multiplications
-could use r4 instead of r5 for temporary variables
+| I | T | H | S | V | N | Z | C |
+|:--:|:--:|:--:|:--:|:--:|:--:|:--:|:--:|
+|Global Interrupt Enable|
+
+I -  
+T -  
+H - Half Carry  
+S - Sign Bit  
+V -   
+N -   
+Z - Zero Result  
+C - Carry  
+
+### Address Spaces
+
+Data memory
+
+Program Memory - Program
+
+EEPROM Memory - ie startup / bootloader
+-> Electrically Erasable Programmable ROM
+
+---
+
+## Data Memory Space
+
+* `r0` mapped to data memory 0x0000
+* `r31` mapped to data memory 0x001F
+
+* The first 32 + 46+416 == 512 registers are all internal
+
+* Highest memory location is defined as `RAMEND`
+
+## Program Memory Space
+
+* 16-bit flash memory
+
+TODO: Notes
+
+## EEPROM
+
+TODO: Notes
+
+## AVR Instruction Format
+
+`brge` - BRanch if Greater than or Equal to. -> Uses the status registers
