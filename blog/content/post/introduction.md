@@ -146,3 +146,103 @@ TODO: Notes
 ## AVR Instruction Format
 
 `brge` - BRanch if Greater than or Equal to. -> Uses the status registers
+
+
+32 bit instructions
+
+lds Rd, k
+        ^ 16
+    ^ 5
+
+Loads 1 byte from the SRAM
+
+### Instruction :: Add
+
+`add Rd, Rr`
+
+0001 01rd dddd rrrr
+
+### Instruction :: Unconditional Branch -> 32 bit long
+
+`jmp k`
+
+PC <- k
+
+1001 010k kkkk 110k kkkk kkkk kkkk kkkk
+
+### Instruction: Conditional Branch
+
+breq k
+
+`-64 <= k < 63`
+
+1111 00kk kkkk k001
+
+// TODO: Two's complement
+
+-- LOGIC - and, or, xor
+-- SHIFT - lsl Rd
+
+
+
+---
+
+GP -- mov
+
+stack -- push Rr, pop Rd
+
+Memory -- ld Rd, X, st X, Rr (address is in register X)
+
+sbic - test a bit in a register, skip next instruction if true
+
+
+rjmpdest
+rcall
+ret
+
+Program memory - lpm
+
+---
+
+///
+
+# Addressing Modes
+
+Immediate
+Register direct
+Memory related addressing mode
+  * Data memory
+    * DIrect
+    * Indirect
+    * Indirect wiht displacement
+    * Indirect with pre-decrement
+    * Indirect wiht pre-increment
+
+Indirect addressing with displacement
+
+-> Data memory addressfrom (Y,Z)+q 
+   Useful for arrays
+
+   std Y+, r14
+   std Y, r14
+
+// TODO: ???
+
+---
+
+icall -> go to location Z
+
+--
+
+--
+
+## Instruction :: Compare
+
+`cp Rd, Rr`
+
+`Rd - Rr` -> Store into status register
+
+## Instruction :: Compare Immediate
+
+## Instruction :: Relative Jump
+
