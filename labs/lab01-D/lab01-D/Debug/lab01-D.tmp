@@ -1,0 +1,40 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.7</VERSION>
+ <DEVICE>"ATmega2560"</DEVICE>
+ <WORKING_DIR>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m2560def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\Debug\lab01-D.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>lab01-D.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>lab01-D.map</FILE>
+  <FILE>lab01-D.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <data><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>11</LINE></data>
+  <array><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>16</LINE></array>
+  <start><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>30</LINE></start>
+  <initialise><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>31</LINE></initialise>
+  <loadLoop><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>44</LINE></loadLoop>
+  <loadLoop_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>61</LINE></loadLoop_end>
+  <zeroLoop><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>69</LINE></zeroLoop>
+  <zeroLoop_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>77</LINE></zeroLoop_end>
+  <programStart><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>79</LINE></programStart>
+  <findHeadLoop><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>88</LINE></findHeadLoop>
+  <findHeadLoop_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>100</LINE></findHeadLoop_end>
+  <end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>125</LINE></end>
+  <shiftLoop><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>107</LINE></shiftLoop>
+  <shiftLoop_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm</FILE><LINE>122</LINE></shiftLoop_end>
+ </LABELS>
+</ASSEMBLER_INFO>
