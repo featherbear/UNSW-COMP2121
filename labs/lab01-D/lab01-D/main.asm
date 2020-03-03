@@ -5,7 +5,6 @@
 ; Author : Andrew
 ;
 
-.EQU arg=1
 
 .dseg
 data:
@@ -15,6 +14,11 @@ data:
 // Assume the array is already sorted, and there are no repeated items
 array:
 	.db 1, 2, 5, 7, 8, 12, 20
+
+// Count = 5
+inserts:
+    .db 0, 10, 1, 25, 6
+
 /*
 	// Long method //
 	.db 1
@@ -45,6 +49,7 @@ initialise:
 		breq loadLoop_end
 
 		// Load program memory
+		// ZH and ZL didn't need to be left shifted, since it started from 0
 		lpm r0, Z+ // Load to r0
 		
 		// Stop if new < last
@@ -62,10 +67,11 @@ initialise:
 		mov r2, r1 // Copy of counter
 		
 	// Zero-pad the rest
-	clz
 	clr r0
 	clr r3
+	clz
 
+	/* 
 	zeroLoop:
 		breq zeroLoop_end
 
@@ -76,52 +82,72 @@ initialise:
 
 	zeroLoop_end:
 
+	*/
+
 programStart:
-  ldi r16, arg
 
-  clr r0
-  clr r2
+  // Left Shift / Multiply by 2 - to address the word <-> byte address compatability
+  ldi ZH, high(inserts<<1)
+  ldi ZL, low(inserts<<1)
 
-  ldi XH, high(data)
-  ldi XL, low(data)
+  clr r18 // Counter
 
-  findHeadLoop:
-	cp r1, r0
-	brlo findHeadLoop_end
+  insertLoop:
+	  cpi r18, 5
+	  breq insertLoop_end
 
-	ld r17, X+
-	cp r16, r17
-	brlo findHeadLoop_end
-	breq end
+	  lpm r16, Z+
 
-	inc r0
-	rjmp findHeadLoop
+	  clr r0
+	  clr r2
 
-  findHeadLoop_end:
-	// r0 is now the index of the number which we want to insert.
-	// So, shift the rest down
+	  ldi XH, high(data)
+	  ldi XL, low(data)
 
-	st -X, r16
-	adiw XH:XL, 1
+	  findHeadLoop:
+		cp r1, r0
+		brlo findHeadLoop_end
 
-  shiftLoop:
-	cp r1, r0
-	brlo shiftLoop_end
+		ld r17, X+
+		cp r16, r17
+		brlo findHeadLoop_end
+		breq insertLoop_pass
 
-	// r17 holds the original value
+		inc r0
+		rjmp findHeadLoop
 
-	ld r16, X
-	st X+, r17
+	  findHeadLoop_end:
+		// r0 is now the index of the number which we want to insert.
+		// So, shift the rest down
+
+		st -X, r16
+		inc r0
+		adiw XH:XL, 1
+
+	  shiftLoop:
+		cp r1, r0
+		brlo shiftLoop_end
+
+		// r17 holds the original value
+
+		ld r16, X
+		st X+, r17
 	
-	mov r17, r16
+		mov r17, r16
 
-	inc r0
+		inc r0
 
-	rjmp shiftLoop
+		rjmp shiftLoop
 
-  shiftLoop_end:
-	inc r1
+	  shiftLoop_end:
+		inc r1
 
+	insertLoop_pass:
+	  inc r18
+	  rjmp insertLoop
+
+	insertLoop_end:
+		
 end:
 	rjmp end
 

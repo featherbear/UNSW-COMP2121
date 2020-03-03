@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm Tue Mar 03 15:05:06 2020
+AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm Tue Mar 03 23:32:23 2020
 
 
 EQU  SIGNATURE_000 0000001e
@@ -1359,18 +1359,19 @@ EQU  URXC3addr    0000006c
 EQU  UDRE3addr    0000006e
 EQU  UTXC3addr    00000070
 EQU  INT_VECTORS_SIZE 00000072
-EQU  arg          00000001
 DSEG data         00000200
 CSEG array        00000000
-CSEG start        00000004
-CSEG initialise   00000004
-CSEG loadLoop     0000000b
-CSEG loadLoop_end 00000013
-CSEG zeroLoop     00000017
-CSEG zeroLoop_end 0000001b
-CSEG programStart 0000001b
-CSEG findHeadLoop 00000020
-CSEG findHeadLoop_end 00000028
-CSEG end          00000032
-CSEG shiftLoop    0000002a
-CSEG shiftLoop_end 00000031
+CSEG inserts      00000004
+CSEG start        00000007
+CSEG initialise   00000007
+CSEG loadLoop     0000000e
+CSEG loadLoop_end 00000016
+CSEG programStart 0000001a
+CSEG insertLoop   0000001d
+CSEG insertLoop_end 00000039
+CSEG findHeadLoop 00000024
+CSEG findHeadLoop_end 0000002c
+CSEG insertLoop_pass 00000037
+CSEG shiftLoop    0000002f
+CSEG shiftLoop_end 00000036
+CSEG end          00000039

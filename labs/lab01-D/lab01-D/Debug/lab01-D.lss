@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm Tue Mar 03 15:05:06 2020
+AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm Tue Mar 03 23:32:23 2020
 
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m2560def.inc'
 [builtin](2): Including file 'C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m2560def.inc'
@@ -1848,7 +1848,6 @@ AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm
                                  ; Author : Andrew
                                  ;
                                  
-                                 .EQU arg=1
                                  
                                  .dseg
                                  data:
@@ -1860,8 +1859,16 @@ AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm
 000000 0201
 000001 0705
 000002 0c08
-C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm(17): warning: .cseg .db misalignment - padding zero byte
+C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm(16): warning: .cseg .db misalignment - padding zero byte
 000003 0014                      	.db 1, 2, 5, 7, 8, 12, 20
+                                 
+                                 // Count = 5
+                                 inserts:
+000004 0a00
+000005 1901
+C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm(20): warning: .cseg .db misalignment - padding zero byte
+000006 0006                          .db 0, 10, 1, 25, 6
+                                 
                                  /*
                                  	// Long method //
                                  	.db 1
@@ -1876,101 +1883,123 @@ C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-D\lab01-D\main.asm(17): warning: .cse
                                  
                                  start:
                                  initialise:
-000004 e0f0                          ldi ZH, high(array)
-000005 e0e0                      	ldi ZL, low(array)
+000007 e0f0                          ldi ZH, high(array)
+000008 e0e0                      	ldi ZL, low(array)
                                  
                                  	// Repeat 256 times, or when lower value reached
-000006 2411                      	clr r1 // n_items counter // As a byte
-000007 e0b2                      	ldi XH, high(data)
-000008 e0a0                      	ldi XL, low(data)
+000009 2411                      	clr r1 // n_items counter // As a byte
+00000a e0b2                      	ldi XH, high(data)
+00000b e0a0                      	ldi XL, low(data)
                                  
-000009 2433                      	clr r3 // Last value
+00000c 2433                      	clr r3 // Last value
                                  
                                  	// Use zero-flag / buffer overflow property of a byte to count 256
-00000a 9498                      	clz
+00000d 9498                      	clz
                                  	loadLoop:
-00000b f039                      		breq loadLoop_end
+00000e f039                      		breq loadLoop_end
                                  
                                  		// Load program memory
-00000c 9005                      		lpm r0, Z+ // Load to r0
+                                 		// ZH and ZL didn't need to be left shifted, since it started from 0
+00000f 9005                      		lpm r0, Z+ // Load to r0
                                  		
                                  		// Stop if new < last
-00000d 1403                      		cp r0, r3
-00000e f020                      		brlo loadLoop_end
+000010 1403                      		cp r0, r3
+000011 f020                      		brlo loadLoop_end
                                  
                                  		// Store in data memory
-00000f 920d                      		st X+, r0
+000012 920d                      		st X+, r0
                                  
-000010 2c30                      		mov r3, r0 // Store last value
-000011 9413                      		inc r1
-000012 cff8                      		rjmp loadLoop
+000013 2c30                      		mov r3, r0 // Store last value
+000014 9413                      		inc r1
+000015 cff8                      		rjmp loadLoop
                                  
                                  	loadLoop_end:
-000013 2c21                      		mov r2, r1 // Copy of counter
+000016 2c21                      		mov r2, r1 // Copy of counter
                                  		
                                  	// Zero-pad the rest
-000014 9498                      	clz
-000015 2400                      	clr r0
-000016 2433                      	clr r3
+000017 2400                      	clr r0
+000018 2433                      	clr r3
+000019 9498                      	clz
                                  
+                                 	/* 
                                  	zeroLoop:
-000017 f019                      		breq zeroLoop_end
+                                 		breq zeroLoop_end
                                  
-000018 920d                      		st X+, r0
+                                 		st X+, r0
                                  
-000019 9423                      		inc r2
-00001a cffc                      		rjmp zeroLoop
+                                 		inc r2
+                                 		rjmp zeroLoop
                                  
                                  	zeroLoop_end:
                                  
+                                 	*/
+                                 
                                  programStart:
-00001b e001                        ldi r16, arg
                                  
-00001c 2400                        clr r0
-00001d 2422                        clr r2
+                                   // Left Shift / Multiply by 2 - to address the word <-> byte address compatability
+00001a e0f0                        ldi ZH, high(inserts<<1)
+00001b e0e8                        ldi ZL, low(inserts<<1)
                                  
-00001e e0b2                        ldi XH, high(data)
-00001f e0a0                        ldi XL, low(data)
+00001c 2722                        clr r18 // Counter
                                  
-                                   findHeadLoop:
-000020 1410                      	cp r1, r0
-000021 f030                      	brlo findHeadLoop_end
+                                   insertLoop:
+00001d 3025                      	  cpi r18, 5
+00001e f0d1                      	  breq insertLoop_end
                                  
-000022 911d                      	ld r17, X+
-000023 1701                      	cp r16, r17
-000024 f018                      	brlo findHeadLoop_end
-000025 f061                      	breq end
+00001f 9105                      	  lpm r16, Z+
                                  
-000026 9403                      	inc r0
-000027 cff8                      	rjmp findHeadLoop
+000020 2400                      	  clr r0
+000021 2422                      	  clr r2
                                  
-                                   findHeadLoop_end:
-                                 	// r0 is now the index of the number which we want to insert.
-                                 	// So, shift the rest down
+000022 e0b2                      	  ldi XH, high(data)
+000023 e0a0                      	  ldi XL, low(data)
                                  
-000028 930e                      	st -X, r16
-000029 9611                      	adiw XH:XL, 1
+                                 	  findHeadLoop:
+000024 1410                      		cp r1, r0
+000025 f030                      		brlo findHeadLoop_end
                                  
-                                   shiftLoop:
-00002a 1410                      	cp r1, r0
-00002b f028                      	brlo shiftLoop_end
+000026 911d                      		ld r17, X+
+000027 1701                      		cp r16, r17
+000028 f018                      		brlo findHeadLoop_end
+000029 f069                      		breq insertLoop_pass
                                  
-                                 	// r17 holds the original value
+00002a 9403                      		inc r0
+00002b cff8                      		rjmp findHeadLoop
                                  
-00002c 910c                      	ld r16, X
-00002d 931d                      	st X+, r17
+                                 	  findHeadLoop_end:
+                                 		// r0 is now the index of the number which we want to insert.
+                                 		// So, shift the rest down
+                                 
+00002c 930e                      		st -X, r16
+00002d 9403                      		inc r0
+00002e 9611                      		adiw XH:XL, 1
+                                 
+                                 	  shiftLoop:
+00002f 1410                      		cp r1, r0
+000030 f028                      		brlo shiftLoop_end
+                                 
+                                 		// r17 holds the original value
+                                 
+000031 910c                      		ld r16, X
+000032 931d                      		st X+, r17
                                  	
-00002e 2f10                      	mov r17, r16
+000033 2f10                      		mov r17, r16
                                  
-00002f 9403                      	inc r0
+000034 9403                      		inc r0
                                  
-000030 cff9                      	rjmp shiftLoop
+000035 cff9                      		rjmp shiftLoop
                                  
-                                   shiftLoop_end:
-000031 9413                      	inc r1
+                                 	  shiftLoop_end:
+000036 9413                      		inc r1
                                  
+                                 	insertLoop_pass:
+000037 9523                      	  inc r18
+000038 cfe4                      	  rjmp insertLoop
+                                 
+                                 	insertLoop_end:
+                                 		
                                  end:
-000032 cfff                      	rjmp end
+000039 cfff                      	rjmp end
                                  
                                  
                                  	
@@ -1992,12 +2021,12 @@ counted separately from r26..r31 here.
 .dseg memory usage only counts static data declared with .byte
 
 "ATmega2560" register use summary:
-x  :   6 y  :   0 z  :   1 r0 :  11 r1 :   6 r2 :   3 r3 :   4 r4 :   0 
+x  :   5 y  :   0 z  :   2 r0 :  11 r1 :   6 r2 :   2 r3 :   4 r4 :   0 
 r5 :   0 r6 :   0 r7 :   0 r8 :   0 r9 :   0 r10:   0 r11:   0 r12:   0 
-r13:   0 r14:   0 r15:   0 r16:   5 r17:   4 r18:   0 r19:   0 r20:   0 
+r13:   0 r14:   0 r15:   0 r16:   5 r17:   4 r18:   3 r19:   0 r20:   0 
 r21:   0 r22:   0 r23:   0 r24:   0 r25:   0 r26:   3 r27:   3 r28:   0 
-r29:   0 r30:   1 r31:   1 
-Registers used: 12 out of 35 (34.3%)
+r29:   0 r30:   2 r31:   2 
+Registers used: 13 out of 35 (37.1%)
 
 "ATmega2560" instruction use summary:
 .lds  :   0 .sts  :   0 adc   :   0 add   :   0 adiw  :   1 and   :   0 
@@ -2006,27 +2035,27 @@ brcc  :   0 brcs  :   0 break :   0 breq  :   3 brge  :   0 brhc  :   0
 brhs  :   0 brid  :   0 brie  :   0 brlo  :   4 brlt  :   0 brmi  :   0 
 brne  :   0 brpl  :   0 brsh  :   0 brtc  :   0 brts  :   0 brvc  :   0 
 brvs  :   0 bset  :   0 bst   :   0 call  :   0 cbi   :   0 cbr   :   0 
-clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   6 cls   :   0 
+clc   :   0 clh   :   0 cli   :   0 cln   :   0 clr   :   7 cls   :   0 
 clt   :   0 clv   :   0 clz   :   2 com   :   0 cp    :   4 cpc   :   0 
-cpi   :   0 cpse  :   0 dec   :   0 eicall:   0 eijmp :   0 elpm  :   0 
+cpi   :   1 cpse  :   0 dec   :   0 eicall:   0 eijmp :   0 elpm  :   0 
 eor   :   0 fmul  :   0 fmuls :   0 fmulsu:   0 icall :   0 ijmp  :   0 
-in    :   0 inc   :   5 jmp   :   0 ld    :   2 ldd   :   0 ldi   :   7 
-lds   :   0 lpm   :   1 lsl   :   0 lsr   :   0 mov   :   3 movw  :   0 
+in    :   0 inc   :   6 jmp   :   0 ld    :   2 ldd   :   0 ldi   :   8 
+lds   :   0 lpm   :   2 lsl   :   0 lsr   :   0 mov   :   3 movw  :   0 
 mul   :   0 muls  :   0 mulsu :   0 neg   :   0 nop   :   0 or    :   0 
 ori   :   0 out   :   0 pop   :   0 push  :   0 rcall :   0 ret   :   0 
 reti  :   0 rjmp  :   5 rol   :   0 ror   :   0 sbc   :   0 sbci  :   0 
 sbi   :   0 sbic  :   0 sbis  :   0 sbiw  :   0 sbr   :   0 sbrc  :   0 
 sbrs  :   0 sec   :   0 seh   :   0 sei   :   0 sen   :   0 ser   :   0 
 ses   :   0 set   :   0 sev   :   0 sez   :   0 sleep :   0 spm   :   0 
-st    :   4 std   :   0 sts   :   0 sub   :   0 subi  :   0 swap  :   0 
+st    :   3 std   :   0 sts   :   0 sub   :   0 subi  :   0 swap  :   0 
 tst   :   0 wdr   :   0 
-Instructions used: 13 out of 116 (11.2%)
+Instructions used: 14 out of 116 (12.1%)
 
 "ATmega2560" memory use summary [bytes]:
 Segment   Begin    End      Code   Data   Used    Size   Use%
 ---------------------------------------------------------------
-[.cseg] 0x000000 0x000066     94      8    102  262144   0.0%
+[.cseg] 0x000000 0x000074    102     14    116  262144   0.0%
 [.dseg] 0x000200 0x000300      0    256    256    8192   3.1%
 [.eseg] 0x000000 0x000000      0      0      0    4096   0.0%
 
-Assembly complete, 0 errors, 1 warnings
+Assembly complete, 0 errors, 2 warnings
