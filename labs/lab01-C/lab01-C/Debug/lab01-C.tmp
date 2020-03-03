@@ -1,0 +1,38 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.7</VERSION>
+ <DEVICE>"ATmega2560"</DEVICE>
+ <WORKING_DIR>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m2560def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\Debug\lab01-C.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>lab01-C.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>lab01-C.map</FILE>
+  <FILE>lab01-C.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <ascii><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>17</LINE></ascii>
+  <input><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>20</LINE></input>
+  <start><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>22</LINE></start>
+  <loopA_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>60</LINE></loopA_end>
+  <loopA><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>49</LINE></loopA>
+  <loopB_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>83</LINE></loopB_end>
+  <loopB><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>72</LINE></loopB>
+  <loopC_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>106</LINE></loopC_end>
+  <loopC><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>95</LINE></loopC>
+  <loopD_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>129</LINE></loopD_end>
+  <loopD><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>118</LINE></loopD>
+  <end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-C\lab01-C\main.asm</FILE><LINE>137</LINE></end>
+ </LABELS>
+</ASSEMBLER_INFO>
