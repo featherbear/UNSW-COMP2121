@@ -1,5 +1,5 @@
 
-AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm Wed Feb 26 22:35:21 2020
+AVRASM ver. 2.2.7  C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm Tue Mar 03 13:36:52 2020
 
 
 EQU  SIGNATURE_000 0000001e
@@ -1359,6 +1359,8 @@ EQU  URXC3addr    0000006c
 EQU  UDRE3addr    0000006e
 EQU  UTXC3addr    00000070
 EQU  INT_VECTORS_SIZE 00000072
+EQU  haha         0000ffff
+EQU  lol          00000001
 CSEG start        00000000
 CSEG sixteenBitDivision 0000000b
 CSEG eightBitDivision 00000001

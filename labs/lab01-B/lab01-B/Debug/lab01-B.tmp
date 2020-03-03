@@ -22,13 +22,13 @@
   <FILE>lab01-B.lss</FILE>
  </OUTPUT_FILES>
  <LABELS>
-  <start><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>19</LINE></start>
-  <sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>44</LINE></sixteenBitDivision>
-  <eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>23</LINE></eightBitDivision>
-  <loop_eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>31</LINE></loop_eightBitDivision>
-  <endLoop_eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>41</LINE></endLoop_eightBitDivision>
-  <end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>74</LINE></end>
-  <loop_sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>57</LINE></loop_sixteenBitDivision>
-  <endLoop_sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>71</LINE></endLoop_sixteenBitDivision>
+  <start><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>22</LINE></start>
+  <sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>48</LINE></sixteenBitDivision>
+  <eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>26</LINE></eightBitDivision>
+  <loop_eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>34</LINE></loop_eightBitDivision>
+  <endLoop_eightBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>45</LINE></endLoop_eightBitDivision>
+  <end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>80</LINE></end>
+  <loop_sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>61</LINE></loop_sixteenBitDivision>
+  <endLoop_sixteenBitDivision><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab01-B\lab01-B\main.asm</FILE><LINE>77</LINE></endLoop_sixteenBitDivision>
  </LABELS>
 </ASSEMBLER_INFO>

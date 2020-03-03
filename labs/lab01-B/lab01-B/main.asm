@@ -16,6 +16,9 @@
 	Test corner cases such as : maximum / minimum, divisor > dividend.
 */
 
+.equ haha=0xffff
+.equ lol=1
+
 start:
 	// rjmp eightBitDivision
 	rjmp sixteenBitDivision
@@ -31,7 +34,7 @@ eightBitDivision:
 	loop_eightBitDivision:
 		// Exit loop if remainder < divisor
 		cp r19, r17
-		brmi endLoop_eightBitDivision
+		brlo endLoop_eightBitDivision
 		
 		// Subtract divisor, increment quotient
 		sub r19, r17
@@ -43,11 +46,11 @@ eightBitDivision:
 		rjmp end
 
 sixteenBitDivision:
-	ldi r17, high(257) // MSB Dividend
-	ldi r16, low(257)  // LSB Dividend
+	ldi r17, high(haha) // MSB Dividend
+	ldi r16, low(haha)  // LSB Dividend
 
 	ldi r19, 0  // (Dummy) MSB Divisor
-	ldi r18, 16 // LSB Divisor
+	ldi r18, low(lol) // LSB Divisor
 		
 	mov r25, r17 // MSB Remainder
 	mov r24, r16 // LSB Remainder
@@ -60,7 +63,7 @@ sixteenBitDivision:
 		cp r24, r18
 		cpc r25, r19
 		 
-		brmi endLoop_sixteenBitDivision
+		brlo endLoop_sixteenBitDivision
 
 		// 16 bit subtraction
 		sub r24, r18
