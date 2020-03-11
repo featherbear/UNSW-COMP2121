@@ -54,8 +54,3 @@ ser -> Set all bits to 1
 DDRA -> All 1 bits are OUTPUTs
 INPUT -> PIN
 OUTPUT -> PORT
-
-#
-
-Memory Mapped IO
-
