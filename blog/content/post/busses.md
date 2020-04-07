@@ -49,7 +49,7 @@ Address bus WRITE, data bus write, WRITE signal
 
 # Set Register
 
-ser -> Set all bits to 1
+`ser` -> Set all bits to 1
 
 DDRA -> All 1 bits are OUTPUTs
 INPUT -> PIN
