@@ -26,9 +26,12 @@ v heap
 
 Stack pointer points to the NEXT free value
 
-# Stack operations
+# Stack Operations
 
-## PUSH
+* PUSH an item to the stack - `push r[0-31]`
+* POP an item from the stack - `pop r[0-31]`
 
-## POP
+POP items in the **reverse** order that they were pushed in.  
+Also ensure that there are the same number of `push` and `pop` statements.  
+
 
