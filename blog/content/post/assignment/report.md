@@ -135,21 +135,21 @@ meant to be 70 rps  could use light interrupt
 
 ## Component-Hardware Map
 
-|Microwave Component|Hardware Device|      Component Port     |    Board/AVR Port   |
-|:-----------------:|:-------------:|:-----------------------:|:-------------------:|
-|     Turntable     |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
-|     Countdown     |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
-|     Magnetron     |     MOTOR     |           MOT           |       [PE4/OC3B]    |
-|    Power Level    |      LED      |       [LED0-LED7]       |       [PC0-PC7]     |
-|   Start Button    |       *       |          KEYPAD         |       [PK0-PK7]     |
-|    Stop Button    |       #       |          KEYPAD         |       [PK0-PK7]     |
-|    Open Button    |  PUSH BUTTON  |           PB1           |      RDX3 (PD1)     |
-|   Close Button    |  PUSH BUTTON  |           PB0           |      RDX4 (PD0)     |
-|   Power Select    |       A       |          KEYPAD         |       [PK0-PK7]     |
-|    Numeric Pad    |    KEYPAD     |          KEYPAD         |       [PK0-PK7]     |
-|    Door Light     |    STROBE     |           LED           |         PG2         |
-|    Door Status    |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
-|  Status Message   |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
+|Microwave Component|Hardware Device|       Component Port      |    Board/AVR Port              |
+|:-----------------:|:-------------:|:-------------------------:|:------------------------------:|
+|     Turntable     |      LCD      | [D0-D7] [BE;RW;E;RS] [BL] | [PF0-PF7] [PA4-PA7] [PL4/OC5B] |
+|     Countdown     |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
+|     Magnetron     |     MOTOR     |         MOT               |       [PE4/OC3B]               |
+|    Power Level    |      LED      |     [LED0-LED7]           |       [PC0-PC7]                |
+|   Start Button    |       *       |        KEYPAD             |       [PK0-PK7]                |
+|    Stop Button    |       #       |        KEYPAD             |       [PK0-PK7]                |
+|    Open Button    |  PUSH BUTTON  |         PB1               |      RDX3 (PD1)                |
+|   Close Button    |  PUSH BUTTON  |         PB0               |      RDX4 (PD0)                |
+|   Power Select    |       A       |        KEYPAD             |       [PK0-PK7]                |
+|    Numeric Pad    |    KEYPAD     |        KEYPAD             |       [PK0-PK7]                |
+|    Door Light     |    STROBE     |         LED               |         PG2                    |
+|    Door Status    |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
+|  Status Message   |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
 
 ## Button Setup
 
@@ -169,6 +169,8 @@ meant to be 70 rps  could use light interrupt
 |Time|Timer Temporary|`r22`|
 |Time|Seconds Counter Temporary|`r23`|
 |Turntable|Turntable Position|`r24`|
+|LCD|Backlight Timeout Counter|`r25`|
+|LCD|Backlight PWM Duty Cycle|`r26`|
 
 ### System State - `r0`
 
@@ -231,7 +233,7 @@ The 16-bit value is split into four 4-bit values (the highest digit `9` needs at
 
 `timer1`-incremented counter for counting 1/12 seconds.  
 
-Provides functionality turntable rotation and seconds counting
+Provides functionality turntable rotation, seconds counting and backlight fading
 
 ### Seconds Counter Temporary - `r23`
 
@@ -240,6 +242,14 @@ Provides functionality turntable rotation and seconds counting
 ### Turntable Position - `r24`
 
 Holds the current rotational state of the turntable 
+
+### Backlight Timeout Counter - `r25`
+
+`timer1`-incremented counter for counting to 10 seconds.
+
+### Backlight PWM Duty Cycle - `r26`
+
+The duty cycle value to assign to the OCR5BL register during backlight fading
 
 ## Software Implementation
 
@@ -291,6 +301,10 @@ Holds the current rotational state of the turntable
 * macro:`isRunning`
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b10`
+
+* macro:`isRunningISR` ; Use register r18 for ISR
+  * Copy `r0` to `r18`
+  * Bitwise AND `r18` with `0b10`
 
 * macro:`isPaused`
   * Copy `r0` to `r17`
@@ -421,13 +435,14 @@ Holds the current rotational state of the turntable
 * Disable global interrupts
 * Dismiss if input not ready (`r1 != 1`)
 * Execute macro:`StartDebouncer`
+* Set `r25` to `0` - Enable LCD backlight
 * Return from interrupt (+ enable global interrupts) if macro:`isDoorOpen` is true
 * Detect the pressed key into `r17` (_Lab 4 Keypad code_)
   * For each column
-    * Set column bit on `PORTL` register to `0` (LOW - GND)
+    * Set column bit on `PORTK` register to `0` (LOW - GND)
     * Read from `PINL` register into `r17`
     * Check if any row bit is `0`, and stop checks if so
-    * Set column bit on `PORTL` register to `1` (HI)
+    * Set column bit on `PORTK` register to `1` (HI)
   * Translate co-ordinate to ASCII character into `r17`
 * If macro:`isEntry` is true
   * Call function:`doPwrConfig` if key is `0xA`
@@ -486,15 +501,14 @@ Holds the current rotational state of the turntable
 ### function:[`startRunning`]
 
 * Execute macro:`setRunning`
+* Set `r25` to `0` - Enable LCD backlight
 * Set `PORTC` to `r2` - Enable Magnetron level
 * Set `OCR3BL` to `r3` - Enable Magnetron
-* Set `TIMSK1` to `0b1` - Start turntable and timer
 
 ### function:[`stopRunning`]
 
 * Set `PORTC` to `r2` - Disable Magnetron level
 * Set `OCR3BL` to `r3` - Disable Magnetron
-* Set `TIMSK1` to `0b1` - Stop turntable and timer
 
 ### function:[`doPause`]
 
@@ -564,6 +578,19 @@ Holds the current rotational state of the turntable
 * Execute function:`showTime`
 * Return
 
+### function:[`checkBacklight`]
+
+_Complete fade in/out will execute over 6 calls (6 / 12 ticks)_
+
+* If `r25` is not `120`
+  * If `r26` is not `252` (42 * 6 = 252)
+    * Increment `r26` by 42
+    * Set `OCR3BL` to `r26`
+* Else
+  * If `r26` is not `0`
+    * Decrement `r26` by 42
+    * Set `OCR3BL` to `r26`
+
 ### ISR:[`Timer0OVF`]
 
 * Disable global interrupts
@@ -579,14 +606,18 @@ _156 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 0.02 se
 * Increment register `r22`
 * Return from interrupt (+ enable global interrupts) if `r22` is not `651`
 * Clear `r22`
-* Call function:`updateTurntable`
-* Increment `r23`
-* If `r23` is `12` ( 1/12 seconds * 12 = 1 second)
-  * Clear `r23`
-  * If `r21:r20` is 0
-    * Set the `TIMSK1` register to `0b0` - Disable timer
-    * Call function:`doFinish`
-  * Call function:`tickTime`
+* If macro:`isRunningISR` is true
+  * Call function:`updateTurntable` 
+  * Increment `r23`
+  * If `r23` is `12` ( 1/12 seconds * 12 = 1 second)
+    * Clear `r23`
+    * If `r21:r20` is 0
+      * Call function:`doFinish`
+    * Call function:`tickTime`
+* Else
+  * If `r25` is not `120` (10 seconds / 1/12 = 120 ticks)
+    * Increment `r25`
+* Call function:`checkBacklight`
 * Return from interrupt (+ enable global interrupts) 
 
 
@@ -605,11 +636,17 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
 * Set up LCD (Using Lab 4 LCD example)
   * Reset display
   * Set 4-line mode
+* Set up LCD backlight
+	* Set `DDRL` register to `0b10000` - PL4 / OC5B for output
+	* Set `TCCR5A` register to `0b00100001` - 8-bit phase-correct PWM, set on down-count
+  * Set `TCCR5B` register to `0b1` - Clock to system clock (no prescaler)
+  * Set `OCR5B` register to `0x00FF` - Current PWM duty cycle 100%
+  * Set `r26` to `0xFF` (100% duty cycle)
 * Set up keypad
   * Set `DDRK` register to `0xF0` - K0-K3 for input; K4-K7 for output
   * Set `PCMSK2` register to `0xFF` - Enable PCINT23:16 triggers
   * Set `PCICR` register to `0b100` - Enable PCIE2 interrupt
-  * Set `PORTL` register to `0x0F` - Enable all pins (allows interrupt to execute)
+  * Set `PORTK` register to `0x0F` - Enable all pins (allows interrupt to execute)
 * Set up open and close buttons
   * Set `EICRA` register to `0b1010` - Falling edge for INT1 and INT0
   * Set `EIMSK` register to `0b11` - Enable INT1 and INT0
@@ -635,15 +672,13 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
   * Emulate 8-bit timer
     * Set `TCCR1B` register to `0b00001010` - enable CTC mode, and set clock tap to clk_io/8
     * Set `OCR1AL` register to `0xFF` (255)
-
-
+    * Set `TIMSK1` to `0b1` - Start timer (will not activate turntable or countdown unless running)
 * Set up program state
   * Set `r0` to `0b1` - Enter `ENTRY` state
   * Set `r1` to `1` - Enable button input
   * Clear `r21:r20` - Reset duration
   * Clear `r17` - Reset general purpose register
   * Clear `r18` - Reset general purpose register
-
 * Enable global interrupts (`sei`)
 
 
@@ -658,9 +693,5 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
 Each button function currently handles code in its own ISR, which may cause performance issues for a program that has time-critical operations to complete. For a microwave oven, not so much - but this idea can be incorporated.
 
 As this implementation is event-driven (using interrupts as function triggers), the functionality of each button (depending on current state) could be passed into the main loop, which currently idles. The main loop could then be rewritten to handle button functionality.
-
-## Turntable Position
-
-The position of the Turntable does not persist between microwave uses
 
 ## Magnetron intensity
