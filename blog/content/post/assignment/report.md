@@ -89,27 +89,48 @@ The below table outlines the functionality, and operations that the microwave ov
     * Every time the counter decrements, the new time is displayed on the LCD screen (top-left)
     * If the timer reaches zero, the microwave enters the `FINISHED` state
 
-## Decisions
+# Implementation
 
-### Backlight
+## Design Decisions / Rationale
 
-When the backlight is dimmed, any keypad button will reactivate the display - however the keypad function will be dismissed if invalid at the time of press
+### Hardware Usage
+
+* Timer 0 - Debouncing
+* Timer 1 - Central clock
+* Timer 3 - PWM controller motor
+* Timer 5 - PWM controlled LCD backlight
+* Port A, F - LCD Screen
+* Port C - LED Bar
+* Port D - Push Buttons
+* Port E - Motor
+  * Used for OC3B pin
+* Port G - LED
+  * _Door LED_
+* Port K - Keypad
+  * Used because they are also Pin Change Interrupt pins
+  * Can be used to trigger the PCINT2 interrupt
+* Port L - LCD Screen Light
+  * Used for OC5B pin
+
 
 ### Door Open LED
 
 When the microwave door is open, the STROBE LED will be turned on continually, rather than the top-most LED of the LED bar.  
-
-LED9 can be mapped to PG2 instead, if the top-most LED of the LED bar is desired
+`LED9` can be mapped to `PG2` instead, if the top-most LED of the LED bar is desired
 
 ### Input Design
 
-I have decided to implement all buttons to trigger as an interrupt.  
+I have decided to implement all buttons to trigger as an interrupt - as like an event-based approach.  
 To mitigate switch bouncing - **All buttons will share a single software debouncer** (`timer0`).  
 Whilst the OPEN and CLOSE buttons don't _really_ need to be debounced, we'll do it anyway.
 
-# Implementation
+### Interrupts
 
-## Keypad
+To mitigate interrupt events modifying registers from other operations, interrupts share their own general purpose register `r18`; rather than using `r17`.
+
+Consequently, there is a `isRunning` and `isRunningISR` macro.
+
+### Keypad
 
 The example keypad checking code (Lab 4) executes under the guise that it will be run continually in a loop.  
 
@@ -118,20 +139,35 @@ This implementation of the microwave will migrate this code into an interrupt-ba
 The keypads buttons have been assigned to `Port K` instead - which also serves as `PCINT23:16` pins.  
 Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interrupt
 
-## Timer
+### Backlight
 
-Multipurpose
+When the backlight is dimmed, any keypad button will reactivate the display - however the keypad function will be dismissed if invalid at the time of press.  
+The Open and Close buttons will not (by design) activate the backlight
 
-Turntable (3 revolutions per second, 4 symbols = 1/12 time)
-countdown
+### Timer
 
-## Motor Speed
+`timer0` serves as a debouncing timer
 
-100% duty cycle
+`timer1` serves as a multipurpose central clock operating at 12Hz.  
+This timer supports turntable rotation (4 states at 3 revolutions a second = 4 * 3 = 12 changes a second)  
+It also supports the cooking timer, which waits for 12 ticks (1/12 * 12 = 1 second)  
+Finally, the timer implements the fading LCD backlight every 6 ticks, at 8-bit duty cycle value increments of floor(255/6) = 42.
 
-meant to be 70 rps  could use light interrupt
+### Motor Speed
 
-# Setup
+The PWM duty cycle for a motor rotation speed of 70 rps can be determined by trial and error with help of the optometer.  
+However, I did not have the project board in possession, and so was unable to calculate the correct scaled PWM value
+
+### Register Access
+
+As registers are faster than the SRAM in the MCU, I have opted to store most flags, values and states in registers.  
+To minimise the number of registers used / mitigate conflict registers, some arithmetic operations have been used - namely for `r0` and `r21:r20`.
+
+Consequently, the stack pointer (SPL) did not have to be initialised
+
+## System Diagram
+
+// TODO: Diagram
 
 ## Component-Hardware Map
 
@@ -693,5 +729,3 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
 Each button function currently handles code in its own ISR, which may cause performance issues for a program that has time-critical operations to complete. For a microwave oven, not so much - but this idea can be incorporated.
 
 As this implementation is event-driven (using interrupts as function triggers), the functionality of each button (depending on current state) could be passed into the main loop, which currently idles. The main loop could then be rewritten to handle button functionality.
-
-## Magnetron intensity
