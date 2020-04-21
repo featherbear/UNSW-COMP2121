@@ -37,8 +37,8 @@ The below table outlines the functionality, and operations that the microwave ov
 |RUNNING | ROTATE  |  TIMER  | ROTATE  | SHOW |   C   |  -   |  -   |    ON    |   -   |  ADD  |PAUSE |PAUSE -> DOOR|   -   |  -  |
 |PAUSED  |         |         |         | SHOW |   C   |  -   |  -   |   FADE   |   -   | START |RESET |DOOR  |   -   |  -   |
 |FINISHED|         |         |         |  -   |   C   | DONE |  -   |   FADE   |   -   |   -   |RESET |RESET -> DOOR|   -    |  -  |
-|SET PWR |    -    |    -    |    -    | SHOW |   C   | PWR  |  -   |   FADE   | 1/2/3 |   -   |BACK  |DOOR  |   -   |   -   |
-|DOOR    |    -    |    -    |    -    | SHOW |   O   |  -   |  ON   |    -     |   -   |   -   |  -   |   -  |   -   |  -  |
+|POWER_CFG |    -    |    -    |    -    | SHOW |   C   | PWR  |  -   |   FADE   | 1/2/3 |   -   |BACK  |DOOR  |   -   |   -   |
+|DOOR_OPEN|    -    |    -    |    -    | SHOW |   O   |  -   |  ON   |    -     |   -   |   -   |  -   |   -  | CLOSE |  -  |
 
 ## State Operation
 
@@ -97,7 +97,9 @@ When the backlight is dimmed, any keypad button will reactivate the display - ho
 
 ### Door Open LED
 
-When the microwave door is open, the STROBE LED will be turned on continually
+When the microwave door is open, the STROBE LED will be turned on continually, rather than the top-most LED of the LED bar.  
+
+LED9 can be mapped to PG2 instead, if the top-most LED of the LED bar is desired
 
 ### Input Design
 
@@ -110,9 +112,24 @@ Whilst the OPEN and CLOSE buttons don't _really_ need to be debounced, we'll do 
 ## Keypad
 
 The example keypad checking code (Lab 4) executes under the guise that it will be run continually in a loop.  
-To migrate this code into an interrupt-based routine, the keypads buttons have been assigned to `Port K` - which also serves as `PCINT23:16`.  
 
+This implementation of the microwave will migrate this code into an interrupt-based routine.  
+
+The keypads buttons have been assigned to `Port K` instead - which also serves as `PCINT23:16` pins.  
 Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interrupt
+
+## Timer
+
+Multipurpose
+
+Turntable (3 revolutions per second, 4 symbols = 1/12 time)
+countdown
+
+## Motor Speed
+
+100% duty cycle
+
+meant to be 70 rps  could use light interrupt
 
 # Setup
 
@@ -120,10 +137,10 @@ Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interru
 
 |Microwave Component|Hardware Device|      Component Port     |    Board/AVR Port   |
 |:-----------------:|:-------------:|:-----------------------:|:-------------------:|
-|     Turntable     |      LCD      |                         |                     |
-|     Countdown     |      LCD      |                         |                     |
-|     Magnetron     |     MOTOR     |                         |                     |
-|    Power Level    |      LED      | [LED0-LED7] [LED8-LED9] | [PC0-PC7] [PG0-PG1] |
+|     Turntable     |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
+|     Countdown     |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
+|     Magnetron     |     MOTOR     |           MOT           |       [PE4/OC3B]    |
+|    Power Level    |      LED      |       [LED0-LED7]       |       [PC0-PC7]     |
 |   Start Button    |       *       |          KEYPAD         |       [PK0-PK7]     |
 |    Stop Button    |       #       |          KEYPAD         |       [PK0-PK7]     |
 |    Open Button    |  PUSH BUTTON  |           PB1           |      RDX3 (PD1)     |
@@ -131,8 +148,8 @@ Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interru
 |   Power Select    |       A       |          KEYPAD         |       [PK0-PK7]     |
 |    Numeric Pad    |    KEYPAD     |          KEYPAD         |       [PK0-PK7]     |
 |    Door Light     |    STROBE     |           LED           |         PG2         |
-|    Door Status    |      LCD      |                         |                     |
-|  Status Message   |      LCD      |                         |                     |
+|    Door Status    |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
+|  Status Message   |      LCD      |   [D0-D7] [BE;RW;E;RS]  | [PF0-PF7] [PA4-PA7] |
 
 ## Button Setup
 
@@ -141,69 +158,100 @@ Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interru
 |Category|Purpose|Register|
 |:------:|:-----:|:------:|
 |System|System State|`r0`|
-|-|General Temporary|`r17`|
-|Input|Input Ready Flag|`r18`|
-|Input|Debouncer Temporary|`r19`|
+|Input|Input Ready Flag|`r1`|
+|Magnetron|Level Display|`r2`|
+|Magnetron|PWM Duty Cycle|`r3`|
+|Input|Debouncer Temporary|`r16`|
+|System|General Operation Temporary|`r17`|
+|System|General Routine Temporary|`r18`|
+|Input|Duration Temporary|`r19`|
+|Time|Duration|`r21:r20`|
+|Time|Timer Temporary|`r22`|
+|Time|Seconds Counter Temporary|`r23`|
+|Turntable|Turntable Position|`r24`|
 
 ### System State - `r0`
 
 |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|PWR_0|PWR_1|POWER_CFG|DOOR_OPEN|FINISHED|PAUSED|RUNNING|ENTRY|
+|PWR_0|PWR_1|DOOR_OPEN|POWER_CFG|FINISHED|PAUSED|RUNNING|ENTRY|
 
 * Bits 7-6 define the power level
   * `1|1` - 100% _(default)_
   * `1|0` - 75%
   * `0|1` - 50%
   * `0|0` - _undefined_
-* Bits 0-5 define the current mode
+* Bit 5 defines if the door is currently open
+* Bits 0-4 define the current mode
  
+### Input Ready Flag - `r1`
+
+* Zero value - Not ready for input
+* Non-zero value - Ready for input
+
+### Level Display - `r2`
+
+Each bit represents one of the lower LEDs on the LED bar connected to PORTC.
+
+### PWM Duty Cycle - `r3`
+
+The duty cycle value to assign to the OCR3BL register during magnetron operation
+
+### Debouncer Temporary - `r16`
+
+`timer0`-incremented counter for debouncing
+
+### General Operation Temporary - `r17`
+
+General purpose register for operations and macro/function outputs
+
+### General Routine Temporary - `r18`
+
+General purpose register for interrupt service routine operations
+
+### Duration Temporary - `r19`
+
+Counts the number of digits entered in the system.  
+Prevents more than 4 digits from being entered
+
+### Duration - `r21:r20`
+
+16-bit value that contains the entered/remaining time.  
+The 16-bit value is split into four 4-bit values (the highest digit `9` needs at most 4 bits).
+
+|r21:7-4|r21:3-0|r20:7-4|r20:3-0|
+|:-----:|:-----:|:-----:|:-----:|
+|m|m|s|s|
+
+> i.e. `0b1001000110100`  
+`0001 (1) ... `0010` (2) ... `0011` (3) ... `0100` (4)  
+= 12m 34s
+
+### Timer Temporary - `r22`
+
+`timer1`-incremented counter for counting 1/12 seconds.  
+
+Provides functionality turntable rotation and seconds counting
+
+### Seconds Counter Temporary - `r23`
+
+`timer1`-incremented counter for counting seconds.  
+
+### Turntable Position - `r24`
+
+Holds the current rotational state of the turntable 
+
 ## Software Implementation
 
-### Define macros
+### Define data regions
 
-* `StartDebouncer`
-  * Set the `r18` register to `0` - Disable button input
-  * Set the `TCNT0` register to `0` - Clear the timer
-  * Set the `r19` register to `0` - Clear the previous ticks
-  * Set the `TIMSK0` register to `0b1` - Enable timer
+* `turntablePositions` => `"-/|\"`
+* `powerCfgMessage1` => `"Set Power 1/2/3\0"`
+* `powerCfgMessage1` => `"# - Return\0"`
+* `finishedMessage1` => `"Done\0"`
+* `finishedMessage2` => `"Remove food\0"`
 
-* `StopDebouncer`
-  * Set the `TIMSK0` register to `0b1` - Disable timer
-  * Set the `r18` register to `1` - Enable button input
-
-* `StrobeLEDOn`
-  * Get the value of the `PORTG` register
-  * Bitwise OR the value with `0b100` - Enable G2
-  * Store the new value into the `PORTG` register
-
-* `StrobeLEDOff`
-  * Get the value of the `PORTG` register
-  * Bitwise AND the value with `0b11111011` - Disable G2
-  * Store the new value into the `PORTG` register
-
-* `isEntry`
-  * Copy `r0` to `r17`
-  * Bitwise AND `r17` with `0b1`
-
-* `isRunning`
-  * Copy `r0` to `r17`
-  * Bitwise AND `r17` with `0b10`
-
-* `isPaused`
-  * Copy `r0` to `r17`
-  * Bitwise AND `r17` with `0b100`
-
-* `isFinished`
-  * Copy `r0` to `r17`
-  * Bitwise AND `r17` with `0b1000`
-
-* `isDoorOpen`
-  * Copy `r0` to `r17`
-  * Bitwise AND `r17` with `0b10000`
-
-
-### Set up Interrupt Vector Table
+### Interrupt Vector Table
 
 |Address|\(r)jmp|
 |:-----:|:----:|
@@ -211,65 +259,391 @@ Using `Pin Change Interrupt 2`, keypad presses will trigger the `PCINT2` interru
 |`INT0addr`|`btnClose`|
 |`INT1addr`|`btnOpen`|
 |`PCINT2addr`|`btnKeypad`|
+|`OVF1addr`|`Timer1OVF`|
 |`OVF0addr`|`Timer0OVF`|
 
-### [`btnClose`]
+### Macro Definitions
 
-* Dismiss if input not ready (`r18 != 1`)
 * macro:`StartDebouncer`
-* TODO: Logic
-* macro:`StrobeLEDOff`
-* Return from interrupt
+  * Set the `r1` register to `0` - Disable button input
+  * Set the `TCNT0` register to `0` - Clear the timer
+  * Set the `r16` register to `0` - Clear the previous ticks
+  * Set the `TIMSK0` register to `0b1` - Enable timer
 
-### [`btnOpen`]
+* macro:`StopDebouncer`
+  * Set the `TIMSK0` register to `0b0` - Disable timer
+  * Set the `r1` register to `1` - Enable button input
 
-* Dismiss if input not ready (`r18 != 1`)
+* macro:`DoorLEDOn`
+  * Get the value of the `PORTG` register
+  * Bitwise OR the value with `0b100` - Enable G2
+  * Store the new value into the `PORTG` register
+
+* macro:`DoorLEDOff`
+  * Get the value of the `PORTG` register
+  * Bitwise AND the value with `0b11111011` - Disable G2
+  * Store the new value into the `PORTG` register
+
+* macro:`isEntry`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b1`
+
+* macro:`isRunning`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b10`
+
+* macro:`isPaused`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b100`
+
+* macro:`isFinished`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b1000`
+
+* macro:`isPowerCfg`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b10000`
+
+* macro:`setEntry`
+  * Set `r17` to `r0`
+  * Bitwise AND `r17` with `0b11100000`
+  * Bitwise OR `r17` with `0b1`
+  * Set `r0` to `r17`
+
+* macro:`setRunning`
+  * Set `r17` to `r0`
+  * Bitwise AND `r17` with `0b11100000`
+  * Bitwise OR `r17` with `0b10`
+  * Set `r0` to `r17`
+
+* macro:`setPaused`
+  * Set `r17` to `r0`
+  * Bitwise AND `r17` with `0b11100000`
+  * Bitwise OR `r17` with `0b100`
+  * Set `r0` to `r17`
+
+* macro:`setFinished`
+  * Set `r17` to `r0`
+  * Bitwise AND `r17` with `0b11100000`
+  * Bitwise OR `r17` with `0b1000`
+  * Set `r0` to `r17`
+
+* macro:`setPowerCfg`
+  * Set `r17` to `r0`
+  * Bitwise AND `r17` with `0b11100000`
+  * Bitwise OR `r17` with `0b10000`
+  * Set `r0` to `r17`
+
+* macro:`isDoorOpen`
+  * Copy `r0` to `r17`
+  * Bitwise AND `r17` with `0b100000`
+
+* macro:`subtract1`
+  * Set `r18` to `r20`
+  * Bitwise AND `r18` with `0b0001111`
+  * If `r18` is `0`
+    * Bitwise AND `r20` with `0b11110000`
+    * Stop if `r21` is `0` and `r20` is `0`
+    * Bitwise OR `r20` with `9`
+    * macro:`subtract10`
+  * Else
+    * Decrement `r20`
+
+* macro:`subtract10`
+  * Set `r18` to `r20`
+  * Bitwise AND `r18` with `0b11110000`
+  * If `r18` is `0`
+    * Stop if `r21` is `0`
+    * Bitwise AND `r20` with `0b00001111`
+    * Bitwise OR `r20` with `0b01010000`
+    * macro:`subtract100`
+  * Else
+    * Decrement `r20` by `0b00010000`
+
+* macro:`subtract100`
+  * Set `r18` to `r21`
+  * Bitwise AND `r18` with `0b0001111`
+  * If `r18` is `0`
+    * Bitwise AND `r21` with `0b11110000`
+    * Stop if `r21` is `0`
+    * Bitwise OR `r21` with `9`
+    * macro:`subtract1000`
+  * Else
+    * Decrement `r21`
+
+* macro:`subtract1000`
+  * Decrement `r21` by `0b00010000`
+
+* macro:`addMinute`
+  * Set `r17` to `r21`
+  * Bitwise AND `r17` with `0b00001111`
+  * If `r17` is `9`
+    * Set `r17` to `r21`
+    * Right shift `r17` four times
+    * Stop if `r17` is `9`
+    * Increment `r17`
+    * Left shift `r17` four times
+  * Set `r21` to `r17`
+  * Else
+    * Increment `r21`
+
+* macro:`resetTime`
+  * Set `r21:r20` to `0`
+  * Set `r19` to `0`
+  * Execute function:`showTime`
+
+### ISR:[`btnClose`]
+
+* Disable global interrupts
+* Dismiss if input not ready (`r1 != 1`)
 * macro:`StartDebouncer`
-* TODO: Logic
-* macro:`StrobeLEDOn`
-* Return from interrupt
+* Return from interrupt (+ enable global interrupts) if macro:`isDoorOpen` is false
+* Bitwise XOR `r1` with `0b100000` - Clear door open bit
+* Execute macro:`DoorLEDOff`
+* Set LCD Line 4 Column 16 to `'C'`
+* Return from interrupt (+ enable global interrupts)
 
-### [`btnKeypad`]
+### ISR:[`btnOpen`]
 
-* Dismiss if input not ready (`r18 != 1`)
+* Disable global interrupts
+* Dismiss if input not ready (`r1 != 1`)
 * macro:`StartDebouncer`
-* TODO: Logic
-* Return from interrupt
+* Return from interrupt (+ enable global interrupts) if macro:`isDoorOpen` is true
+* Call function:`doPause` if macro:`isRunning` is true
+* Call function:`doEntry` if macro:`isFinished` is true
+* Bitwise XOR `r1` with `0b100000` - Set door open bit
+* Execute macro:`DoorLEDOn`
+* Set LCD Line 4 Column 16 to `'O'`
+* Return from interrupt (+ enable global interrupts)
 
-### [`Timer0OVF`]
+### ISR:[`btnKeypad`]
 
-* Increment register `r19` - Tick count
-* Stop debounce if `r19` is 156 (20ms has passed)
-* Return from interrupt
+* Disable global interrupts
+* Dismiss if input not ready (`r1 != 1`)
+* Execute macro:`StartDebouncer`
+* Return from interrupt (+ enable global interrupts) if macro:`isDoorOpen` is true
+* Detect the pressed key into `r17` (_Lab 4 Keypad code_)
+  * For each column
+    * Set column bit on `PORTL` register to `0` (LOW - GND)
+    * Read from `PINL` register into `r17`
+    * Check if any row bit is `0`, and stop checks if so
+    * Set column bit on `PORTL` register to `1` (HI)
+  * Translate co-ordinate to ASCII character into `r17`
+* If macro:`isEntry` is true
+  * Call function:`doPwrConfig` if key is `0xA`
+  * Execute macro:`resetTime` if key is `0xF`
+  * Call function:`doRun` if key is `0xE`
+  * Call function:`addTime` if key is 0 - 9
+* ElseIf macro:`isRunning` is true
+  * Execute macro:`addMinute` if key is `0xE`
+  * Call function:`doPause` if key is `0xF`
+* ElseIf macro:`isPaused` is true
+  * Call function:`startRunning` if key is `0xE`
+  * Execute macro:`setEntry` if key is `0xF`
+* ElseIf macro:`isFinished` is true
+  * Call function:`doEntry` if key is `0xF`
+* ElseIf macro:`isPowerCfg` is true
+  * Call function:`setPwr` if key is 1 - 3
+  * Call function:`returnEntry` if key is `0xF`
+* Return from interrupt (+ enable global interrupts)
+
+### function:[`doEntry`]
+
+* Execute macro:`resetTime`
+* Execute function:`returnEntry`
+
+### function:[`doPwrConfig`]
+
+* Clear LCD line 2
+* Clear LCD line 3
+* Display `powerCfgMessage1` on LCD line 2
+* Display `powerCfgMessage2` on LCD line 3
+
+### function:[`setPwr`]
+
+* If `r17` is `1`
+  * Set `r2` to `0b11111111`
+  * Set `r3` to `0xFF`
+* If `r17` is `2`
+  * Set `r3` to `0b1111`
+  * Set `r3` to `0x7F`
+* If `r17` is `3`
+  * Set `r2` to `0b11`
+  * Set `r3` to `0x3F`
+* Return
+
+### function:[`returnEntry`]
+
+* Clear LCD line 2
+* Clear LCD line 3
+* Execute macro:`setEntry`
+
+### function:[`doRun`]
+
+* Execute macro:`addMinute` if `r21:r20` is `0`
+* Call function:`startRunning`
+
+### function:[`startRunning`]
+
+* Execute macro:`setRunning`
+* Set `PORTC` to `r2` - Enable Magnetron level
+* Set `OCR3BL` to `r3` - Enable Magnetron
+* Set `TIMSK1` to `0b1` - Start turntable and timer
+
+### function:[`stopRunning`]
+
+* Set `PORTC` to `r2` - Disable Magnetron level
+* Set `OCR3BL` to `r3` - Disable Magnetron
+* Set `TIMSK1` to `0b1` - Stop turntable and timer
+
+### function:[`doPause`]
+
+* Execute function:`stopRunning`
+* Execute macro:`setPaused`
+
+### function:[`doFinish`]
+
+* Execute macro:`setFinished`
+* Clear LCD line 2
+* Clear LCD line 3
+* Display `finishedMessage1` on LCD line 2
+* Display `finishedMessage2` on LCD line 3
+
+### function:[`showTime`]
+
+* If `r21:r20` is `0`
+  * Set LCD Row 1 Column 1 to `' '`
+  * Set LCD Row 1 Column 2 to `' '`
+  * Set LCD Row 1 Column 3 to `' '`
+  * Set LCD Row 1 Column 4 to `' '`
+  * Set LCD Row 1 Column 5 to `' '`
+  * Return
+* Set `r17` to `r21`
+* Right shift `r17` four times
+* Increment `r17` by ASCII '0' (30)
+* Set LCD Row 1 Column 1 to `r17`
+* Set `r17` to `r21`
+* Bitwise AND `r17` with `0b1111`
+* Increment `r17` by ASCII '0' (30)
+* Set LCD Row 1 Column 2 to `r17`
+* Set LCD Row 1 Column 3 to `':'`
+* Set `r17` to `r20`
+* Right shift `r17` four times
+* Increment `r17` by ASCII '0' (30)
+* Set LCD Row 1 Column 4 to `r17`
+* Set `r17` to `r20`
+* Bitwise AND `r17` with `0b1111`
+* Increment `r17` by ASCII '0' (30)
+* Set LCD Row 1 Column 5 to `r17`
+
+### function:[`addTime`]
+
+* Return if `r19` is `4`
+* Return if `r17` is more than `9`
+* If `r19` is 0
+  * Left shift `r17` by 4
+  * Set `r21` to `r17`
+* ElseIf `r19` is 1
+  * Bitwise AND `r21` with `0b11110000`
+  * Bitwise OR `r21` with `r17`
+* ElseIf `r19` is 2
+  * Return if `r17` is more than 5
+  * Left shift `r17` by 4
+  * Set `r20` to `r17`
+* ElseIf `r19` is 3
+  * Bitwise AND `r20` with `0b11110000`
+  * Bitwise OR `r20` with `r17`
+* Increment `r19`
+* Execute function:`showTime`
+* Return
+
+### function:[`tickTime`]
+
+* Return if `r21:r20` is 0
+* Execute macro:`subtract1`
+* Execute function:`showTime`
+* Return
+
+### ISR:[`Timer0OVF`]
+
+* Disable global interrupts
+* Increment register `r16` - Tick count
+* Execute macro:`stopDebouncer` if `r16` is `156` (20ms has passed)
+* Return from interrupt (+ enable global interrupts) 
 
 _156 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 0.02 seconds (20 milliseconds)_
 
+### ISR:[`Timer1OVF`]
+
+* Disable global interrupts
+* Increment register `r22`
+* Return from interrupt (+ enable global interrupts) if `r22` is not `651`
+* Clear `r22`
+* Call function:`updateTurntable`
+* Increment `r23`
+* If `r23` is `12` ( 1/12 seconds * 12 = 1 second)
+  * Clear `r23`
+  * If `r21:r20` is 0
+    * Set the `TIMSK1` register to `0b0` - Disable timer
+    * Call function:`doFinish`
+  * Call function:`tickTime`
+* Return from interrupt (+ enable global interrupts) 
+
+
+_651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 seconds_
+
+### function:[`updateTurntable`]
+
+* Increment `r24`
+* Set `r24` to `0` if `r24` is `4`
+* Load byte `turntablePositions+r24` into `r17`
+* Set LCD Line 1 Column 16 to `r17`
+* Return
+
 ### [`init`] - Set up devices and ports
 
+* Set up LCD (Using Lab 4 LCD example)
+  * Reset display
+  * Set 4-line mode
 * Set up keypad
   * Set `DDRK` register to `0xF0` - K0-K3 for input; K4-K7 for output
   * Set `PCMSK2` register to `0xFF` - Enable PCINT23:16 triggers
-  * Set `PCICR` register to `0b100` - Enable PCIE2
+  * Set `PCICR` register to `0b100` - Enable PCIE2 interrupt
+  * Set `PORTL` register to `0x0F` - Enable all pins (allows interrupt to execute)
 * Set up open and close buttons
   * Set `EICRA` register to `0b1010` - Falling edge for INT1 and INT0
-  * Set `EIMSK` to `0b11` - Enable INT1 and INT0
-* Set up LCD
-  * TODO:
+  * Set `EIMSK` register to `0b11` - Enable INT1 and INT0
+  * Set LCD Line 4 Column 16 to `'C'`
 * Set up Turntable
-  * TODO:
+  * Set `r24` to `3`
+  * Call function:`updateTurntable` - Will set `r24` to `0` and display the horizontal position '-'
 * Set up Magnetron
-  * TODO:
+	* Set `DDRE` register to `0b10000` - PE4 / OC3B for output
+  * Set `OCR3B` register to `0x0000` - Current PWM duty cycle 0% (OFF)
+	* Set `TCCR3A` register to `0b00100001` - 8-bit phase-correct PWM, set on down-count
+  * Set `TCCR3B` register to `0b1` - Clock to system clock (no prescaler)
+  * Set `r3` to `0xFF` - Set duty cycle to 100%
 * Set up Magnetron level meter (LED Bar)
-  * TODO: Use detector? Or just hardcode
   * Set `DDRC` register to `0xFF` - Set all C ports as outputs
-  * Set `DDRG` register to `0b11` - Set G0 and G1 as outputs
+  * Set `r2` to `0xFF` - Show 8 LEDS (for 100%)
 * Set up Door Open light (Strobe LED)
   * Bitwise OR `DDRG` with `0b100` - Set G2 as an output
 * Set up debouncer
   * Set `TCCR0A` register to `0x0`
-  * Set `TCCR0B` register to `0b10` - clock as clk_io/8
+  * Set `TCCR0B` register to `0b10` - clock tap to clk_io/8
+* Set up timer
+  * Emulate 8-bit timer
+    * Set `TCCR1B` register to `0b00001010` - enable CTC mode, and set clock tap to clk_io/8
+    * Set `OCR1AL` register to `0xFF` (255)
+
+
 * Set up program state
-  * Use r0
+  * Set `r0` to `0b1` - Enter `ENTRY` state
+  * Set `r1` to `1` - Enable button input
+  * Clear `r21:r20` - Reset duration
+  * Clear `r17` - Reset general purpose register
+  * Clear `r18` - Reset general purpose register
+
 * Enable global interrupts (`sei`)
 
 
@@ -277,8 +651,16 @@ _156 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 0.02 se
 
 * _Idle and wait for interrupts..._
 
-
 # Improvements
 
 ## Modularity
 
+Each button function currently handles code in its own ISR, which may cause performance issues for a program that has time-critical operations to complete. For a microwave oven, not so much - but this idea can be incorporated.
+
+As this implementation is event-driven (using interrupts as function triggers), the functionality of each button (depending on current state) could be passed into the main loop, which currently idles. The main loop could then be rewritten to handle button functionality.
+
+## Turntable Position
+
+The position of the Turntable does not persist between microwave uses
+
+## Magnetron intensity
