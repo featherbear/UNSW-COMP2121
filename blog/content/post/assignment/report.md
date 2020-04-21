@@ -31,14 +31,23 @@ A successful implementation of a simulated microwave oven requires the simulatio
 
 The below table outlines the functionality, and operations that the microwave oven will perform depending on its current state.
 
-|   MODE |Turntable|Countdown|Magnetron| Time | Door  |  LCD |  LED |Brightness|[0]-[9]|[START]|[STOP]|[OPEN]|[CLOSE]| [A] |
-|:------:|:-------:|:-------:|:-------:|:----:|:-----:|:----:|:----:|:--------:|:-----:|:-----:|:----:|:----:|:-----:|:---:|
-|ENTRY   |         |         |         | SHOW |   C   |  -   |  -   |   FADE   | INPUT | START |RESET |DOOR  |   -   | PWR |
-|RUNNING | ROTATE  |  TIMER  | ROTATE  | SHOW |   C   |  -   |  -   |    ON    |   -   |  ADD  |PAUSE |PAUSE -> DOOR|   -   |  -  |
-|PAUSED  |         |         |         | SHOW |   C   |  -   |  -   |   FADE   |   -   | START |RESET |DOOR  |   -   |  -   |
-|FINISHED|         |         |         |  -   |   C   | DONE |  -   |   FADE   |   -   |   -   |RESET |RESET -> DOOR|   -    |  -  |
-|POWER_CFG |    -    |    -    |    -    | SHOW |   C   | PWR  |  -   |   FADE   | 1/2/3 |   -   |BACK  |DOOR  |   -   |   -   |
-|DOOR_OPEN|    -    |    -    |    -    | SHOW |   O   |  -   |  ON   |    -     |   -   |   -   |  -   |   -  | CLOSE |  -  |
+|           | ENTRY | RUNNING       | PAUSED | FINISHED      | PWR_CFG | DOOR_OPEN |
+|:---------:|:-----:|:-------------:|:------:|:-------------:|:---------:|:---------:|
+|**Turntable**  |    -   | ROTATE        |   -     |     -          | -         | -         |
+|**Countdown**  |    -   | TIMER         |   -     |      -         | -         | -         |
+|**Magnetron**  |   -    | ACTIVE        |   -     |      -         | -         | -         |
+|**Intensity LED**        | -     |  ON             | -      | -             | -         | -        |
+|**Time**       | SHOW  | SHOW          | SHOW   | -             | SHOW      | SHOW      |
+|**Door**       | C     | C             | C      | C             | C         | O         |
+|**LCD**        | -     | -             | -      | DONE          | PWR       | -         |
+|**Brightness** | FADE  | ON            | FADE   | FADE          | FADE      | -         |
+|**Door LED**        | -     | -             | -      | -             | -         | ON        |
+|**[0]-[9]**    | INPUT | -             | -      | -             | 1/2/3     | -         |
+|**[START]**    | START | ADD           | RESUME  | -             | -         | -         |
+|**[STOP]**     | RESET | PAUSE         | RESET  | RESET         | BACK      | -         |
+|**[A]**        | PWR   | -             | -      | -             | -         | -         |
+|**[OPEN]**     | DOOR  | PAUSE -> DOOR | DOOR   | RESET -> DOOR | DOOR      | -         |
+|**[CLOSE]**    | -     | -             | -      | -             | -         | CLOSE     |
 
 ## State Operation
 
@@ -173,19 +182,19 @@ Consequently, the stack pointer (SPL) did not have to be initialised
 
 |Microwave Component|Hardware Device|       Component Port      |    Board/AVR Port              |
 |:-----------------:|:-------------:|:-------------------------:|:------------------------------:|
-|     Turntable     |      LCD      | [D0-D7] [BE;RW;E;RS] [BL] | [PF0-PF7] [PA4-PA7] [PL4/OC5B] |
-|     Countdown     |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
-|     Magnetron     |     MOTOR     |         MOT               |       [PE4/OC3B]               |
-|    Power Level    |      LED      |     [LED0-LED7]           |       [PC0-PC7]                |
-|   Start Button    |       *       |        KEYPAD             |       [PK0-PK7]                |
-|    Stop Button    |       #       |        KEYPAD             |       [PK0-PK7]                |
-|    Open Button    |  PUSH BUTTON  |         PB1               |      RDX3 (PD1)                |
-|   Close Button    |  PUSH BUTTON  |         PB0               |      RDX4 (PD0)                |
-|   Power Select    |       A       |        KEYPAD             |       [PK0-PK7]                |
-|    Numeric Pad    |    KEYPAD     |        KEYPAD             |       [PK0-PK7]                |
-|    Door Light     |    STROBE     |         LED               |         PG2                    |
-|    Door Status    |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
-|  Status Message   |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
+|     **Turntable**     |      LCD      | [D0-D7] [BE;RW;E;RS] [BL] | [PF0-PF7] [PA4-PA7] [PL4/OC5B] |
+|     **Countdown**     |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
+|     **Magnetron**     |     MOTOR     |         MOT               |       [PE4/OC3B]               |
+|    **Power Level**    |      LED      |     [LED0-LED7]           |       [PC0-PC7]                |
+|   **Start Button**    |       *       |        KEYPAD             |       [PK0-PK7]                |
+|    **Stop Button**    |       #       |        KEYPAD             |       [PK0-PK7]                |
+|    **Open Button**    |  PUSH BUTTON  |         PB1               |      RDX3 (PD1)                |
+|   **Close Button**    |  PUSH BUTTON  |         PB0               |      RDX4 (PD0)                |
+|   **Power Select**    |       A       |        KEYPAD             |       [PK0-PK7]                |
+|    **Numeric Pad**    |    KEYPAD     |        KEYPAD             |       [PK0-PK7]                |
+|    **Door Light**     |    STROBE     |         LED               |         PG2                    |
+|    **Door Status**    |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
+|  **Status Message**   |      LCD      | [D0-D7] [BE;RW;E;RS]      | [PF0-PF7] [PA4-PA7]            |
 
 ## Button Setup
 
@@ -212,13 +221,9 @@ Consequently, the stack pointer (SPL) did not have to be initialised
 
 |  7  |  6  |  5  |  4  |  3  |  2  |  1  |  0  |
 |:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-|PWR_0|PWR_1|DOOR_OPEN|POWER_CFG|FINISHED|PAUSED|RUNNING|ENTRY|
+|-|-|DOOR_OPEN|POWER_CFG|FINISHED|PAUSED|RUNNING|ENTRY|
 
-* Bits 7-6 define the power level
-  * `1|1` - 100% _(default)_
-  * `1|0` - 75%
-  * `0|1` - 50%
-  * `0|0` - _undefined_
+* Bits 7-6 - undefined
 * Bit 5 defines if the door is currently open
 * Bits 0-4 define the current mode
  
@@ -262,7 +267,7 @@ The 16-bit value is split into four 4-bit values (the highest digit `9` needs at
 |m|m|s|s|
 
 > i.e. `0b1001000110100`  
-`0001 (1) ... `0010` (2) ... `0011` (3) ... `0100` (4)  
+`0001` (1) ... `0010` (2) ... `0011` (3) ... `0100` (4)  
 = 12m 34s
 
 ### Timer Temporary - `r22`
@@ -285,7 +290,7 @@ Holds the current rotational state of the turntable
 
 ### Backlight PWM Duty Cycle - `r26`
 
-The duty cycle value to assign to the OCR5BL register during backlight fading
+The duty cycle value to assign to the `OCR5BL` register during backlight fading
 
 ## Software Implementation
 
@@ -689,7 +694,7 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
   * Set LCD Line 4 Column 16 to `'C'`
 * Set up Turntable
   * Set `r24` to `3`
-  * Call function:`updateTurntable` - Will set `r24` to `0` and display the horizontal position '-'
+  * Call function:`updateTurntable` - Will set `r24` to `0` and display the horizontal position
 * Set up Magnetron
 	* Set `DDRE` register to `0b10000` - PE4 / OC3B for output
   * Set `OCR3B` register to `0x0000` - Current PWM duty cycle 0% (OFF)
