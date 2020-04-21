@@ -1,0 +1,32 @@
+<ASSEMBLER_INFO>
+ <VERSION>2.2.7</VERSION>
+ <DEVICE>"ATmega2560"</DEVICE>
+ <WORKING_DIR>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\Debug</WORKING_DIR>
+ <INCLUDE_PATH>
+  <DIR>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc</DIR>
+  <DIR>C:\Program Files (x86)\Atmel\Studio\7.0\toolchain\avr8\avrassembler\Include</DIR>
+  <DIR></DIR>
+ </INCLUDE_PATH>
+ <SOURCE_FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</SOURCE_FILE>
+ <INCLUDED_FILES>
+  <FILE>C:/Program Files (x86)\Atmel\Studio\7.0\Packs\atmel\ATmega_DFP\1.3.300\avrasm\inc\m2560def.inc</FILE>
+ </INCLUDED_FILES>
+ <OBJECT_FILES>
+  <FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\Debug\lab04-C.obj</FILE>
+ </OBJECT_FILES>
+ <HEX_FILES>
+  <FILE>lab04-C.hex</FILE>
+ </HEX_FILES>
+ <OUTPUT_FILES>
+  <FILE>lab04-C.map</FILE>
+  <FILE>lab04-C.lss</FILE>
+ </OUTPUT_FILES>
+ <LABELS>
+  <init><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>24</LINE></init>
+  <Timer0OVF><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>99</LINE></Timer0OVF>
+  <loop><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>95</LINE></loop>
+  <Timer0OVF_end><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>124</LINE></Timer0OVF_end>
+  <change_dec><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>116</LINE></change_dec>
+  <change_inc><FILE>C:\Sync\MAIN\UNSW\UNSW-COMP2121\labs\lab04-C\lab04-C\main.asm</FILE><LINE>108</LINE></change_inc>
+ </LABELS>
+</ASSEMBLER_INFO>
