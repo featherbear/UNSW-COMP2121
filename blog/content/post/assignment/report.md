@@ -19,7 +19,11 @@ sequenceDiagrams:
 Microwave Oven Simulator - Conceptual Design and Development
 ---
 
-Author: Andrew Wong (z5206677)
+Author: Andrew Wong (z5206677)  
+
+
+> # PDF Copy available: [z5206677-report.pdf](./z5206677-report.pdf)
+
 
 # Introduction
 
@@ -133,6 +137,13 @@ I have decided to implement all buttons to trigger as an interrupt - as like an 
 To mitigate switch bouncing - **All buttons will share a single software debouncer** (`timer0`).  
 Whilst the OPEN and CLOSE buttons don't _really_ need to be debounced, we'll do it anyway.
 
+### Time Input
+
+The third digit of the timer (tens column) is limited from 0-5.  
+As a result, the maximum possible time of cooking is 99:59 (99 minutes, 59 seconds).
+
+The add minute operation (Pressing [Start] while running) will be dismissed if there is 99 minutes remaining.
+
 ### Interrupts
 
 To mitigate interrupt events modifying registers from other operations, interrupts share their own general purpose register `r18`; rather than using `r17`.
@@ -174,9 +185,18 @@ To minimise the number of registers used / mitigate conflict registers, some ari
 
 Consequently, the stack pointer (SPL) did not have to be initialised
 
-## System Diagram
+### Functions and Macros
 
-// TODO: Diagram
+Operations have been assigned into macros and functions.  
+This allows the reuse of blocks of instructions, and has been used extensively.
+
+User-triggered operations have been created as functions, whilst utility operations have been created as macros.
+
+## System Diagrams
+
+![](block diagram.png)
+
+![](state diagram.png)
 
 ## Component-Hardware Map
 
@@ -315,85 +335,85 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 
 ### Macro Definitions
 
-* macro:`StartDebouncer`
+* macro:`StartDebouncer` - _Enable button debouncer_
   * Set the `r1` register to `0` - Disable button input
   * Set the `TCNT0` register to `0` - Clear the timer
   * Set the `r16` register to `0` - Clear the previous ticks
   * Set the `TIMSK0` register to `0b1` - Enable timer
 
-* macro:`StopDebouncer`
+* macro:`StopDebouncer` - _Disable button debouncer_
   * Set the `TIMSK0` register to `0b0` - Disable timer
   * Set the `r1` register to `1` - Enable button input
 
-* macro:`DoorLEDOn`
+* macro:`DoorLEDOn` - _Enable Door LED_
   * Get the value of the `PORTG` register
   * Bitwise OR the value with `0b100` - Enable G2
   * Store the new value into the `PORTG` register
 
-* macro:`DoorLEDOff`
+* macro:`DoorLEDOff` - _Disable Door LED_
   * Get the value of the `PORTG` register
   * Bitwise AND the value with `0b11111011` - Disable G2
   * Store the new value into the `PORTG` register
 
-* macro:`isEntry`
+* macro:`isEntry` - _Check if ENTRY mode_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b1`
 
-* macro:`isRunning`
+* macro:`isRunning` - _Check if RUNNING mode_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b10`
 
-* macro:`isRunningISR` ; Use register r18 for ISR
+* macro:`isRunningISR` _(Use register r18 for ISR)_
   * Copy `r0` to `r18`
   * Bitwise AND `r18` with `0b10`
 
-* macro:`isPaused`
+* macro:`isPaused` - _Check if PAUSED mode_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b100`
 
-* macro:`isFinished`
+* macro:`isFinished` - _Check if FINISHED mode_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b1000`
 
-* macro:`isPowerCfg`
+* macro:`isPowerCfg` - _Check if PWR\_CFG mode_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b10000`
 
-* macro:`setEntry`
+* macro:`setEntry` - _Set mode to ENTRY_
   * Set `r17` to `r0`
   * Bitwise AND `r17` with `0b11100000`
   * Bitwise OR `r17` with `0b1`
   * Set `r0` to `r17`
 
-* macro:`setRunning`
+* macro:`setRunning` - _Set mode to RUNNING_
   * Set `r17` to `r0`
   * Bitwise AND `r17` with `0b11100000`
   * Bitwise OR `r17` with `0b10`
   * Set `r0` to `r17`
 
-* macro:`setPaused`
+* macro:`setPaused` - _Set mode to PAUSED_
   * Set `r17` to `r0`
   * Bitwise AND `r17` with `0b11100000`
   * Bitwise OR `r17` with `0b100`
   * Set `r0` to `r17`
 
-* macro:`setFinished`
+* macro:`setFinished` - _Set mode to FINISHED_
   * Set `r17` to `r0`
   * Bitwise AND `r17` with `0b11100000`
   * Bitwise OR `r17` with `0b1000`
   * Set `r0` to `r17`
 
-* macro:`setPowerCfg`
+* macro:`setPowerCfg` - _Set mode to PWR\_CFG_
   * Set `r17` to `r0`
   * Bitwise AND `r17` with `0b11100000`
   * Bitwise OR `r17` with `0b10000`
   * Set `r0` to `r17`
 
-* macro:`isDoorOpen`
+* macro:`isDoorOpen` - _Check if door is open_
   * Copy `r0` to `r17`
   * Bitwise AND `r17` with `0b100000`
 
-* macro:`subtract1`
+* macro:`subtract1` - _Subtract a second with carry_
   * Set `r18` to `r20`
   * Bitwise AND `r18` with `0b0001111`
   * If `r18` is `0`
@@ -404,7 +424,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
   * Else
     * Decrement `r20`
 
-* macro:`subtract10`
+* macro:`subtract10` - _Subtract 10 seconds with carry_
   * Set `r18` to `r20`
   * Bitwise AND `r18` with `0b11110000`
   * If `r18` is `0`
@@ -415,7 +435,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
   * Else
     * Decrement `r20` by `0b00010000`
 
-* macro:`subtract100`
+* macro:`subtract100` - _Subtract 1 minute with carry_
   * Set `r18` to `r21`
   * Bitwise AND `r18` with `0b0001111`
   * If `r18` is `0`
@@ -426,10 +446,10 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
   * Else
     * Decrement `r21`
 
-* macro:`subtract1000`
+* macro:`subtract1000` - _Subtract 10 minutes_
   * Decrement `r21` by `0b00010000`
 
-* macro:`addMinute`
+* macro:`addMinute` - _Add one minute_
   * Set `r17` to `r21`
   * Bitwise AND `r17` with `0b00001111`
   * If `r17` is `9`
@@ -442,7 +462,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
   * Else
     * Increment `r21`
 
-* macro:`resetTime`
+* macro:`resetTime` - _Clear the time_
   * Set `r21:r20` to `0`
   * Set `r19` to `0`
   * Execute function:`showTime`
@@ -486,7 +506,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
     * Set column bit on `PORTK` register to `1` (HI)
   * Translate co-ordinate to ASCII character into `r17`
 * If macro:`isEntry` is true
-  * Call function:`doPwrConfig` if key is `0xA`
+  * Call function:`doPwrCfg` if key is `0xA`
   * Execute macro:`resetTime` if key is `0xF`
   * Call function:`doRun` if key is `0xE`
   * Call function:`addTime` if key is 0 - 9
@@ -507,13 +527,15 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 
 * Execute macro:`resetTime`
 * Execute function:`returnEntry`
+* Return
 
-### function:[`doPwrConfig`]
+### function:[`doPwrCfg`]
 
 * Clear LCD line 2
 * Clear LCD line 3
 * Display `powerCfgMessage1` on LCD line 2
 * Display `powerCfgMessage2` on LCD line 3
+* Return
 
 ### function:[`setPwr`]
 
@@ -533,11 +555,13 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 * Clear LCD line 2
 * Clear LCD line 3
 * Execute macro:`setEntry`
+* Return
 
 ### function:[`doRun`]
 
 * Execute macro:`addMinute` if `r21:r20` is `0`
 * Call function:`startRunning`
+* Return
 
 ### function:[`startRunning`]
 
@@ -545,16 +569,19 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 * Set `r25` to `0` - Enable LCD backlight
 * Set `PORTC` to `r2` - Enable Magnetron level
 * Set `OCR3BL` to `r3` - Enable Magnetron
+* Return
 
 ### function:[`stopRunning`]
 
 * Set `PORTC` to `r2` - Disable Magnetron level
 * Set `OCR3BL` to `r3` - Disable Magnetron
+* Return
 
 ### function:[`doPause`]
 
 * Execute function:`stopRunning`
 * Execute macro:`setPaused`
+* Return
 
 ### function:[`doFinish`]
 
@@ -563,6 +590,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 * Clear LCD line 3
 * Display `finishedMessage1` on LCD line 2
 * Display `finishedMessage2` on LCD line 3
+* Return
 
 ### function:[`showTime`]
 
@@ -590,6 +618,7 @@ The duty cycle value to assign to the `OCR5BL` register during backlight fading
 * Bitwise AND `r17` with `0b1111`
 * Increment `r17` by ASCII '0' (30)
 * Set LCD Row 1 Column 5 to `r17`
+* Return
 
 ### function:[`addTime`]
 
@@ -631,6 +660,7 @@ _Complete fade in/out will execute over 6 calls (6 / 12 ticks)_
   * If `r26` is not `0`
     * Decrement `r26` by 42
     * Set `OCR3BL` to `r26`
+* Return
 
 ### ISR:[`Timer0OVF`]
 
@@ -683,7 +713,7 @@ _651 ticks calculated by 10^6 microseconds / 128 microseconds per tick * 1/12 se
   * Set `TCCR5B` register to `0b1` - Clock to system clock (no prescaler)
   * Set `OCR5B` register to `0x00FF` - Current PWM duty cycle 100%
   * Set `r26` to `0xFF` (100% duty cycle)
-* Set up keypad
+* Set up keypad (Using Lab 4 Keypad example)
   * Set `DDRK` register to `0xF0` - K0-K3 for input; K4-K7 for output
   * Set `PCMSK2` register to `0xFF` - Enable PCINT23:16 triggers
   * Set `PCICR` register to `0b100` - Enable PCIE2 interrupt
