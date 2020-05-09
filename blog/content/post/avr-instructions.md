@@ -17,15 +17,9 @@ sequenceDiagrams:
 
 ## AVR Instruction Format
 
-`brge` - BRanch if Greater than or Equal to. -> Uses the status registers
+`brge` - **BR**anch if **G**reater than or **E**qual to -> Uses the status registers
 
-32 bit instructions
-
-lds Rd, k
-^ 16
-^ 5
-
-Loads 1 byte from the SRAM
+`lds Rd, k` - Loads 1 byte from the SRAM
 
 ### Instruction :: Add
 
@@ -56,25 +50,21 @@ Multiply the byte of register `Rd` by the byte of register `Rr`, and store the r
 `r1` contains the first 8 bits (HI / MSB)  
 `r0` contains the last 8 bits (LO / LSB)
 
-Multiplying takes 2 cycles
+**Multiplying takes 2 cycles**.
 
 ## Instruction :: Load Immediate
 
-- `ldi` `Rd`, `#number`\*
+- `ldi` `Rd`, `#number`
 - `ldi R16, 25` -> Load the integer 25 into register 16
 
 `ldi 1110 kkkk dddd kkkk`
 
-In the instruction set for ldi, there are only 4 bits available for the register location.
+In the instruction set for ldi, there are only 4 bits available for the register location.  
 We can therefore only have 2^4 -> 16 locations.  
-AVR is developed such that these locations are respective of the upper 16 register (R16->R31).
+AVR is developed such that these locations are respective of the upper 16 register (R16->R31)
 
 ## Instruction :: Compare
 
 `cp Rd, Rr`
 
-`Rd - Rr` -> Store into status register
-
-## Instruction :: Compare Immediate
-
-## Instruction :: Relative Jump
+Store `Rd - Rr` into status register

@@ -100,7 +100,7 @@ Data memory
 
 Program Memory - Program
 
-EEPROM Memory - ie startup / bootloader
+EEPROM Memory - ie startup / bootloader  
 -> Electrically Erasable Programmable ROM
 
 ---
@@ -118,16 +118,12 @@ EEPROM Memory - ie startup / bootloader
 
 - 16-bit flash memory
 
-TODO: Notes
-
 ## EEPROM
-
-TODO: Notes
 
 // TODO: Two's complement
 
--- LOGIC - and, or, xor
--- SHIFT - lsl Rd
+- LOGIC - and, or, xor  
+- SHIFT - lsl Rd  
 
 ---
 
@@ -139,23 +135,22 @@ Memory -- ld Rd, X, st X, Rr (address is in register X)
 
 sbic - test a bit in a register, skip next instruction if true
 
-rjmpdest
-rcall
-ret
+rjmp dest  
+rcall  
+ret  
 
 Program memory - lpm
 
 ---
 
-///
-
 # Addressing Modes
 
-Immediate
-Register direct
-Memory related addressing mode
+- Immediate  
+- Register direct  
+- Memory related addressing mode  
 
-- Data memory
+
+- Accessing data memory
   - Direct
   - Indirect
   - Indirect wiht displacement
@@ -164,18 +159,14 @@ Memory related addressing mode
 
 Indirect addressing with displacement
 
--> Data memory addressfrom (Y,Z)+q
+-> Data memory address from (Y,Z)+q  
 Useful for arrays
 
-std Y+, r14
+std Y+, r14  
 std Y, r14
-
-// TODO: ???
 
 ---
 
 icall -> go to location Z
-
---
 
 --

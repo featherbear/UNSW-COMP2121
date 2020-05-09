@@ -1,5 +1,5 @@
 ---
-title: "Introduction"
+title: "Program Structure"
 date: 2020-02-25T15:05:14+11:00
 
 hiddenFromHomePage: false
@@ -28,48 +28,42 @@ Case sensitive
   * .SET
 * Comments `;[Text]`
 
-.org -> origin
-.cseg -> code segment
-.dseg -> data segment
-.db
+.org -> origin  
+.cseg -> code segment  
+.dseg -> data segment  
+.db  
+
 ---
 
 ```
 .dseg
-.org 0x100 ; from address 0x100
+.org 0x100        ; from address 0x100
+vartab: .BYTE 4   ; reserve 4 bytes in SRAM from address 0x100
 
-vartab .BYTE 4; reserve 4 bytes in SRAM from address 0x100
-.cseg; Start code segment (Default start location 0x0000)
+.cseg             ; Start code segment (Default start location 0x0000)
+const: .DW 10, 0x10, 0b10, -1  ; Write 10, 16, 2, -1 in program memory, each value takes 2 bytes
+```
 
-const: .DW 10, 0x10, 0b10, -1
-; Write 10, 16, 2, -1 in program memory, each value takes 2 bytes
-...
+.BYTE -> Define space in data memory  
 
-.DB -> store byte in data <s>program</s> memory
-.DW -> store word in data <s>program</s> memory
-
-.BYTE -> Store in data memory
+.DB -> store byte in program memory  
+.DW -> store word in program memory
 
 .include "m2560def.inc"
 
 ----
 
 Alignment - extra null pads
---
 
- 
+Constant values -> program memory
 
- Constant values -> program memory
-
- Can put expression -> ldi r26, low(label + 0x0ff0)
-                                          operator
-                                    operand
-
-
-TODO: Extra functions
-
+```
+Can put expression -> ldi r26, low(label + 0x0ff0)
+                                        operator
+                                  operand
+```
 
 $A0 == 0xA0
 
-cp
-cpc - carry after previous `cp`
+cp  - compare
+cpc - compare with carry
